@@ -13,6 +13,7 @@ debug = false
 defaultBind = localhost:80 # used set for all servers
 
 [example]
+text = "escaped \""
 hostname = "example.com"
 
 [github]
@@ -21,13 +22,14 @@ bind=localhost:443
 `
 	handler := func(section, key, value, comment string) error {
 		switch key {
-		case "hostname":
+		case "hostname", "text":
 			fmt.Printf("%s.%s = %s\n", section, key, value)
 		}
 		return nil
 	}
 	dotini.Parse(handler, strings.NewReader(input))
 	// output:
-	// example.hostname =  "example.com"
+	// example.text = escaped "
+	// example.hostname = example.com
 	// github.hostname = github.com
 }

@@ -48,6 +48,13 @@ func Test_Parse(t *testing.T) {
 			ExpectLines: 0,
 		},
 		{
+			Example:      `k1="hello`,
+			ExpectError:  true,
+			ExpectKeys:   []string{"k1"},
+			ExpectValues: []string{`"hello`},
+			ExpectLines:  1,
+		},
+		{
 			Example:     "[smurf]",
 			ExpectError: true,
 			ExpectLines: 1,
@@ -76,14 +83,17 @@ func Test_Parse(t *testing.T) {
 			Example:        "# comment\nfield1=string value\nfield2 = 1",
 			ExpectLines:    3,
 			ExpectKeys:     []string{"field1", "field2"},
-			ExpectValues:   []string{"string value", " 1"},
+			ExpectValues:   []string{"string value", "1"},
 			ExpectComments: []string{"comment"},
 		},
 		{
-			Example:      "\nk1=1",
-			ExpectLines:  1,
-			ExpectKeys:   []string{"k1"},
-			ExpectValues: []string{"1"},
+			Example: `
+k1=1
+k2="hello \""
+`,
+			ExpectLines:  2,
+			ExpectKeys:   []string{"k1", "k2"},
+			ExpectValues: []string{"1", `hello "`},
 		},
 		{
 			Example: `

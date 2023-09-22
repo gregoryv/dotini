@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"strconv"
 	"strings"
 )
 
@@ -56,16 +57,26 @@ func Parse(handle HandlerFunc, r io.Reader) error {
 		rawkey := line[:i]
 		key := strings.TrimSpace(rawkey)
 		rawvalue := line[i+1:]
-		value := rawvalue
 		comment := findComment(rawvalue)
 		{
 			i := strings.Index(rawvalue, "#")
 			if i != -1 {
-				value = strings.TrimSpace(rawvalue[:i])
+				rawvalue = rawvalue[:i]
 			}
 		}
 		{
-			err := handle.UseIni(section, key, value, comment)
+			rawvalue = strings.TrimSpace(rawvalue)
+			value := rawvalue
+			unquoted, err := strconv.Unquote(rawvalue)
+			if err != nil {
+				if unquoted != "" && errors.Is(err, strconv.ErrSyntax) {
+					return fmt.Errorf("unqote %s: %w", unquoted, err)
+				}
+			} else {
+				value = unquoted
+			}
+
+			err = handle.UseIni(section, key, value, comment)
 			if err != nil {
 				return err
 			}
