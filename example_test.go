@@ -8,9 +8,7 @@ import (
 )
 
 func Example_parse() {
-	input := `
-
-# generic things
+	input := `# generic things
 debug = false
 defaultBind = localhost:80 # used set for all servers
 
@@ -21,8 +19,6 @@ hostname = "example.com"
 hostname=github.com
 bind=localhost:443
 `
-	r := strings.NewReader(input)
-
 	handler := func(section, key, value, comment string) error {
 		switch key {
 		case "hostname":
@@ -30,7 +26,7 @@ bind=localhost:443
 		}
 		return nil
 	}
-	dotini.Parse(handler, r)
+	dotini.Parse(handler, strings.NewReader(input))
 	// output:
 	// example.hostname =  "example.com"
 	// github.hostname = github.com
