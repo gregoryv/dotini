@@ -74,7 +74,7 @@ func Parse(handle Handler, r io.Reader) error {
 		if line[0] == '[' {
 			to := strings.Index(line, "]")
 			if to == -1 {
-				return fmt.Errorf("ini syntax error %v", lineno)
+				return fmt.Errorf("[line %v] %s %w", lineno, rawline, ErrSyntax)
 			}
 			section = line[1:to]
 			comment := findComment(line)

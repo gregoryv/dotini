@@ -99,28 +99,29 @@ hostname=github.com`,
 		{
 			Test:        "missing equal sign",
 			Input:       "key1",
-			ExpectError: true,
+			ExpectError: "[line 1] key1 syntax error",
 			ExpectLines: 0,
 		},
 		{
+			Test:        "incomplete section",
 			Input:       "[incomplete-section",
-			ExpectError: true,
+			ExpectError: "[line 1] [incomplete-section syntax error",
 			ExpectLines: 0,
 		},
 		{
 			Test:        "open quote",
 			Input:       `k1="hello`,
-			ExpectError: true,
+			ExpectError: `[line 1] k1="hello syntax error`,
 		},
 		{
 			Input:       "[smurf]",
-			ExpectError: true,
+			ExpectError: "unknown section",
 			ExpectLines: 1,
 			HandleErr:   fmt.Errorf("unknown section"),
 		},
 		{
 			Input:          "fx=233 # field comment",
-			ExpectError:    true,
+			ExpectError:    ErrSyntax.Error(),
 			ExpectLines:    1,
 			ExpectKeys:     []string{"fx"},
 			ExpectValues:   []string{"233"},
@@ -128,8 +129,8 @@ hostname=github.com`,
 		},
 		{
 			Input:       "nosuch=abc",
-			ExpectError: true,
-			HandleErr:   fmt.Errorf("handler failed"),
+			ExpectError: "unknown key",
+			HandleErr:   fmt.Errorf("unknown key"),
 			ExpectLines: 1,
 		},
 	}
@@ -138,9 +139,16 @@ hostname=github.com`,
 			r := strings.NewReader(c.Input)
 			err := Parse(c.UseIni, r)
 
-			if err != nil && !c.ExpectError {
-				t.Log(c.Input)
-				t.Error(err)
+			if err != nil {
+				if c.ExpectError == "" {
+					t.Log(c.Input)
+					t.Error(err)
+				}
+				if got := err.Error(); got != c.ExpectError {
+					t.Log("got", got)
+					t.Log("exp", c.ExpectError)
+					t.Fail()
+				}
 			}
 			c.Verify(t)
 		})
@@ -152,7 +160,7 @@ type IniCase struct {
 
 	Input       string
 	HandleErr   error
-	ExpectError bool
+	ExpectError string
 
 	ExpectLines int
 	lines       int
