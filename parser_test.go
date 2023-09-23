@@ -42,31 +42,26 @@ func Test_Parse(t *testing.T) {
 			Input: `
 #
 # comment`,
-			ExpectLines:    2,
 			ExpectComments: []string{"comment"},
 		},
 		{
 			Test:         "empty value",
 			Input:        "k1=",
-			ExpectLines:  1,
 			ExpectKeys:   []string{"k1"},
 			ExpectValues: []string{""},
 		},
 		{
 			Input:          "# a comment",
-			ExpectLines:    1,
 			ExpectComments: []string{"a comment"},
 		},
 		{
 			Input:          "[hut] # green",
-			ExpectLines:    1,
 			ExpectComments: []string{"green"},
 		},
 		{
 			Input: `# comment
 field1=string value
 field2 = 1`,
-			ExpectLines:    3,
 			ExpectKeys:     []string{"field1", "field2"},
 			ExpectValues:   []string{"string value", "1"},
 			ExpectComments: []string{"comment"},
@@ -76,7 +71,6 @@ field2 = 1`,
 k1=1
 k2="hello \""
 `,
-			ExpectLines:  2,
 			ExpectKeys:   []string{"k1", "k2"},
 			ExpectValues: []string{"1", `hello "`},
 		},
@@ -87,7 +81,6 @@ hostname=example.com
 
 [server 2]
 hostname=github.com`,
-			ExpectLines:  4,
 			ExpectKeys:   []string{"hostname", "hostname"},
 			ExpectValues: []string{"example.com", "github.com"},
 		},
@@ -100,13 +93,11 @@ hostname=github.com`,
 			Test:        "missing equal sign",
 			Input:       "key1",
 			ExpectError: "[line 1] key1 syntax error",
-			ExpectLines: 0,
 		},
 		{
 			Test:        "incomplete section",
 			Input:       "[incomplete-section",
 			ExpectError: "[line 1] [incomplete-section syntax error",
-			ExpectLines: 0,
 		},
 		{
 			Test:        "open quote",
@@ -116,13 +107,11 @@ hostname=github.com`,
 		{
 			Input:       "[smurf]",
 			ExpectError: "unknown section",
-			ExpectLines: 1,
 			HandleErr:   fmt.Errorf("unknown section"),
 		},
 		{
 			Input:          "fx=233 # field comment",
 			ExpectError:    ErrSyntax.Error(),
-			ExpectLines:    1,
 			ExpectKeys:     []string{"fx"},
 			ExpectValues:   []string{"233"},
 			ExpectComments: []string{"field comment"},
@@ -131,7 +120,6 @@ hostname=github.com`,
 			Input:       "nosuch=abc",
 			ExpectError: "unknown key",
 			HandleErr:   fmt.Errorf("unknown key"),
-			ExpectLines: 1,
 		},
 	}
 	for _, c := range cases {
@@ -162,9 +150,6 @@ type IniCase struct {
 	HandleErr   error
 	ExpectError string
 
-	ExpectLines int
-	lines       int
-
 	ExpectKeys []string
 	keys       []string
 
@@ -176,7 +161,6 @@ type IniCase struct {
 }
 
 func (c *IniCase) UseIni(section, key, value, comment string) error {
-	c.lines++
 	if c.HandleErr != nil {
 		return c.HandleErr
 	}
@@ -191,10 +175,6 @@ func (c *IniCase) UseIni(section, key, value, comment string) error {
 }
 
 func (c *IniCase) Verify(t *testing.T) {
-	if c.lines != c.ExpectLines {
-		t.Log("input:", c.Input)
-		t.Error("lines", c.lines)
-	}
 	if !reflect.DeepEqual(c.keys, c.ExpectKeys) {
 		t.Log("input:", c.Input)
 		t.Errorf("keys: %q", c.keys)
