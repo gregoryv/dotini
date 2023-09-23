@@ -13,7 +13,8 @@ Space separated
 
 	{KEY1} = {VALUE}
 	{KEY2}=   {VALUE}
-	{KEY1}={VALUE}
+	{KEY3}={VALUE}
+	{KEY1}=     # empty values are accepted
 
 Quoted values
 
