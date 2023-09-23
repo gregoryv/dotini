@@ -38,6 +38,14 @@ func Test_Parse(t *testing.T) {
 			Example: "\n\n",
 		},
 		{
+			Test: "only comments",
+			Example: `
+#
+# comment`,
+			ExpectLines:    2,
+			ExpectComments: []string{"comment"},
+		},
+		{
 			Test:         "empty value",
 			Example:      "k1=",
 			ExpectLines:  1,
