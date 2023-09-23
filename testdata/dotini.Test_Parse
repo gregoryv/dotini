@@ -1,0 +1,10 @@
+# comment 1
+k1=1
+k2=string
+k3=value
+k4=something# commented
+k5=123.5
+k6=quoted"
+k7=other "quote"
+[section]
+[section]hostname=example.com

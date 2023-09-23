@@ -1,6 +1,7 @@
 package dotini_test
 
 import (
+	"bufio"
 	"fmt"
 	"strings"
 
@@ -27,7 +28,7 @@ bind=localhost:443
 		}
 		return nil
 	}
-	dotini.Parse(handler, strings.NewReader(input))
+	dotini.Parse(handler, bufio.NewScanner(strings.NewReader(input)))
 	// output:
 	// example.text = escaped "
 	// example.hostname = example.com
