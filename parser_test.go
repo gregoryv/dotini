@@ -50,44 +50,9 @@ func Test_Parse(t *testing.T) {
 			ExpectComments: []string{"a comment"},
 		},
 		{
-			Example:     "key1 # without value, BAD",
-			ExpectError: true,
-			ExpectLines: 0,
-		},
-		{
-			Example:     "[incomplete-section",
-			ExpectError: true,
-			ExpectLines: 0,
-		},
-		{
-			Test:        "open quote",
-			Example:     `k1="hello`,
-			ExpectError: true,
-		},
-		{
-			Example:     "[smurf]",
-			ExpectError: true,
-			ExpectLines: 1,
-			HandleErr:   fmt.Errorf("unknown section"),
-		},
-		{
 			Example:        "[hut] # green",
 			ExpectLines:    1,
 			ExpectComments: []string{"green"},
-		},
-		{
-			Example:        "fx=233 # field comment",
-			ExpectError:    true,
-			ExpectLines:    1,
-			ExpectKeys:     []string{"fx"},
-			ExpectValues:   []string{"233"},
-			ExpectComments: []string{"field comment"},
-		},
-		{
-			Example:     "nosuch=abc",
-			ExpectError: true,
-			HandleErr:   fmt.Errorf("handler failed"),
-			ExpectLines: 1,
 		},
 		{
 			Example: `# comment
@@ -117,6 +82,47 @@ hostname=github.com`,
 			ExpectLines:  4,
 			ExpectKeys:   []string{"hostname", "hostname"},
 			ExpectValues: []string{"example.com", "github.com"},
+		},
+
+		// ----------------------------------------
+		// error cases below
+		// ----------------------------------------
+
+		{
+			Test:        "missing equal sign",
+			Example:     "key1",
+			ExpectError: true,
+			ExpectLines: 0,
+		},
+		{
+			Example:     "[incomplete-section",
+			ExpectError: true,
+			ExpectLines: 0,
+		},
+		{
+			Test:        "open quote",
+			Example:     `k1="hello`,
+			ExpectError: true,
+		},
+		{
+			Example:     "[smurf]",
+			ExpectError: true,
+			ExpectLines: 1,
+			HandleErr:   fmt.Errorf("unknown section"),
+		},
+		{
+			Example:        "fx=233 # field comment",
+			ExpectError:    true,
+			ExpectLines:    1,
+			ExpectKeys:     []string{"fx"},
+			ExpectValues:   []string{"233"},
+			ExpectComments: []string{"field comment"},
+		},
+		{
+			Example:     "nosuch=abc",
+			ExpectError: true,
+			HandleErr:   fmt.Errorf("handler failed"),
+			ExpectLines: 1,
 		},
 	}
 	for _, c := range cases {

@@ -94,30 +94,30 @@ func Parse(handle Handler, r io.Reader) error {
 		key := strings.TrimSpace(rawkey)
 		rawvalue := line[i+1:]
 		comment := findComment(rawvalue)
-		{
+		{ // strip comment from raw value
 			i := strings.Index(rawvalue, "#")
 			if i != -1 {
 				rawvalue = rawvalue[:i]
 			}
 		}
-		{
-			rawvalue = strings.TrimSpace(rawvalue)
-			value := rawvalue
-			if isQuoted(rawvalue) {
-				unquoted, err := strconv.Unquote(rawvalue)
-				if err != nil {
-					log.Printf("%q %v", unquoted, err)
-					if unquoted == "" && errors.Is(err, strconv.ErrSyntax) {
-						return fmt.Errorf("[line %v] %s %w", lineno, rawline, ErrSyntax)
-					}
-				} else {
-					value = unquoted
-				}
-			}
-			err = handle(section, key, value, comment)
+
+		// format value
+		rawvalue = strings.TrimSpace(rawvalue)
+		value := rawvalue
+		if isQuoted(rawvalue) {
+			unquoted, err := strconv.Unquote(rawvalue)
 			if err != nil {
-				return err
+				log.Printf("%q %v", unquoted, err)
+				if unquoted == "" && errors.Is(err, strconv.ErrSyntax) {
+					return fmt.Errorf("[line %v] %s %w", lineno, rawline, ErrSyntax)
+				}
+			} else {
+				value = unquoted
 			}
+		}
+		err = handle(section, key, value, comment)
+		if err != nil {
+			return err
 		}
 	}
 	return nil
