@@ -30,16 +30,16 @@ k5=123.5
 func Test_Parse(t *testing.T) {
 	cases := []*IniCase{
 		{
-			Test:    "completely empty",
-			Example: "",
+			Test:  "completely empty",
+			Input: "",
 		},
 		{
-			Test:    "almost empty",
-			Example: "\n\n",
+			Test:  "almost empty",
+			Input: "\n\n",
 		},
 		{
 			Test: "only comments",
-			Example: `
+			Input: `
 #
 # comment`,
 			ExpectLines:    2,
@@ -47,23 +47,23 @@ func Test_Parse(t *testing.T) {
 		},
 		{
 			Test:         "empty value",
-			Example:      "k1=",
+			Input:        "k1=",
 			ExpectLines:  1,
 			ExpectKeys:   []string{"k1"},
 			ExpectValues: []string{""},
 		},
 		{
-			Example:        "# a comment",
+			Input:          "# a comment",
 			ExpectLines:    1,
 			ExpectComments: []string{"a comment"},
 		},
 		{
-			Example:        "[hut] # green",
+			Input:          "[hut] # green",
 			ExpectLines:    1,
 			ExpectComments: []string{"green"},
 		},
 		{
-			Example: `# comment
+			Input: `# comment
 field1=string value
 field2 = 1`,
 			ExpectLines:    3,
@@ -72,7 +72,7 @@ field2 = 1`,
 			ExpectComments: []string{"comment"},
 		},
 		{
-			Example: `
+			Input: `
 k1=1
 k2="hello \""
 `,
@@ -81,7 +81,7 @@ k2="hello \""
 			ExpectValues: []string{"1", `hello "`},
 		},
 		{
-			Example: `
+			Input: `
 [server 1]
 hostname=example.com
 
@@ -98,28 +98,28 @@ hostname=github.com`,
 
 		{
 			Test:        "missing equal sign",
-			Example:     "key1",
+			Input:       "key1",
 			ExpectError: true,
 			ExpectLines: 0,
 		},
 		{
-			Example:     "[incomplete-section",
+			Input:       "[incomplete-section",
 			ExpectError: true,
 			ExpectLines: 0,
 		},
 		{
 			Test:        "open quote",
-			Example:     `k1="hello`,
+			Input:       `k1="hello`,
 			ExpectError: true,
 		},
 		{
-			Example:     "[smurf]",
+			Input:       "[smurf]",
 			ExpectError: true,
 			ExpectLines: 1,
 			HandleErr:   fmt.Errorf("unknown section"),
 		},
 		{
-			Example:        "fx=233 # field comment",
+			Input:          "fx=233 # field comment",
 			ExpectError:    true,
 			ExpectLines:    1,
 			ExpectKeys:     []string{"fx"},
@@ -127,7 +127,7 @@ hostname=github.com`,
 			ExpectComments: []string{"field comment"},
 		},
 		{
-			Example:     "nosuch=abc",
+			Input:       "nosuch=abc",
 			ExpectError: true,
 			HandleErr:   fmt.Errorf("handler failed"),
 			ExpectLines: 1,
@@ -135,11 +135,11 @@ hostname=github.com`,
 	}
 	for _, c := range cases {
 		t.Run(c.Test, func(t *testing.T) {
-			r := strings.NewReader(c.Example)
+			r := strings.NewReader(c.Input)
 			err := Parse(c.UseIni, r)
 
 			if err != nil && !c.ExpectError {
-				t.Log(c.Example)
+				t.Log(c.Input)
 				t.Error(err)
 			}
 			c.Verify(t)
@@ -150,7 +150,7 @@ hostname=github.com`,
 type IniCase struct {
 	Test string
 
-	Example     string
+	Input       string
 	HandleErr   error
 	ExpectError bool
 
@@ -184,19 +184,19 @@ func (c *IniCase) UseIni(section, key, value, comment string) error {
 
 func (c *IniCase) Verify(t *testing.T) {
 	if c.lines != c.ExpectLines {
-		t.Log("example:", c.Example)
+		t.Log("input:", c.Input)
 		t.Error("lines", c.lines)
 	}
 	if !reflect.DeepEqual(c.keys, c.ExpectKeys) {
-		t.Log("example:", c.Example)
+		t.Log("input:", c.Input)
 		t.Errorf("keys: %q", c.keys)
 	}
 	if !reflect.DeepEqual(c.values, c.ExpectValues) {
-		t.Log("example:", c.Example)
+		t.Log("input:", c.Input)
 		t.Errorf("values: %q", c.values)
 	}
 	if !reflect.DeepEqual(c.comments, c.ExpectComments) {
-		t.Log("example:", c.Example)
+		t.Log("input:", c.Input)
 		t.Errorf("comments: %q", c.comments)
 	}
 }
