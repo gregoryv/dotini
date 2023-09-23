@@ -37,6 +37,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log"
 	"strconv"
 	"strings"
 )
@@ -51,6 +52,7 @@ func Parse(handle HandlerFunc, r io.Reader) error {
 		rawline, err := buf.ReadString('\n')
 
 		line := strings.TrimSpace(rawline)
+
 		// empty line and end of file
 		if len(line) == 0 && errors.Is(err, io.EOF) {
 			break
@@ -99,25 +101,35 @@ func Parse(handle HandlerFunc, r io.Reader) error {
 		{
 			rawvalue = strings.TrimSpace(rawvalue)
 			value := rawvalue
-			unquoted, err := strconv.Unquote(rawvalue)
-			if err != nil {
-				if unquoted != "" && errors.Is(err, strconv.ErrSyntax) {
-					return fmt.Errorf("[line %v] %s %w", lineno, rawline, ErrSyntax)
+			if isQuoted(rawvalue) {
+				unquoted, err := strconv.Unquote(rawvalue)
+				if err != nil {
+					log.Printf("%q %v", unquoted, err)
+					if unquoted == "" && errors.Is(err, strconv.ErrSyntax) {
+						return fmt.Errorf("[line %v] %s %w", lineno, rawline, ErrSyntax)
+					}
+				} else {
+					value = unquoted
 				}
-			} else {
-				value = unquoted
 			}
-
 			err = handle.UseIni(section, key, value, comment)
 			if err != nil {
 				return err
 			}
 		}
-		if err != nil && errors.Is(err, io.EOF) {
-			break
-		}
 	}
 	return nil
+}
+
+func isQuoted(v string) bool {
+	if len(v) == 0 {
+		return false
+	}
+	switch v[0] {
+	case '"', '\'', '`':
+		return true
+	}
+	return false
 }
 
 func findComment(line string) string {

@@ -30,7 +30,19 @@ k5=123.5
 func Test_Parse(t *testing.T) {
 	cases := []*IniCase{
 		{
+			Test:    "completely empty",
 			Example: "",
+		},
+		{
+			Test:    "almost empty",
+			Example: "\n\n",
+		},
+		{
+			Test:         "empty value",
+			Example:      "k1=",
+			ExpectLines:  1,
+			ExpectKeys:   []string{"k1"},
+			ExpectValues: []string{""},
 		},
 		{
 			Example:        "# a comment",
@@ -48,11 +60,9 @@ func Test_Parse(t *testing.T) {
 			ExpectLines: 0,
 		},
 		{
-			Example:      `k1="hello`,
-			ExpectError:  true,
-			ExpectKeys:   []string{"k1"},
-			ExpectValues: []string{`"hello`},
-			ExpectLines:  1,
+			Test:        "open quote",
+			Example:     `k1="hello`,
+			ExpectError: true,
 		},
 		{
 			Example:     "[smurf]",
@@ -80,7 +90,9 @@ func Test_Parse(t *testing.T) {
 			ExpectLines: 1,
 		},
 		{
-			Example:        "# comment\nfield1=string value\nfield2 = 1",
+			Example: `# comment
+field1=string value
+field2 = 1`,
 			ExpectLines:    3,
 			ExpectKeys:     []string{"field1", "field2"},
 			ExpectValues:   []string{"string value", "1"},
@@ -101,15 +113,14 @@ k2="hello \""
 hostname=example.com
 
 [server 2]
-hostname=github.com
-`,
+hostname=github.com`,
 			ExpectLines:  4,
 			ExpectKeys:   []string{"hostname", "hostname"},
 			ExpectValues: []string{"example.com", "github.com"},
 		},
 	}
 	for _, c := range cases {
-		t.Run("", func(t *testing.T) {
+		t.Run(c.Test, func(t *testing.T) {
 			r := strings.NewReader(c.Example)
 			err := Parse(c.UseIni, r)
 
@@ -123,6 +134,8 @@ hostname=github.com
 }
 
 type IniCase struct {
+	Test string
+
 	Example     string
 	HandleErr   error
 	ExpectError bool
