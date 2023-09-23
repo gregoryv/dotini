@@ -1,3 +1,35 @@
+/*
+Package dotini provides parser for .ini files.
+
+# Sections
+
+Surrounded by square brackets
+
+	[{SECTION}]
+
+# Fields
+
+Space separated
+
+	{KEY1} = {VALUE}
+	{KEY2}=   {VALUE}
+	{KEY1}={VALUE}
+
+Quoted values
+
+	key1 = "hello"
+	key2 = 'h'
+	key3 = `h`
+
+Comments
+
+	# {COMMENT1}
+
+	[{SECTION1}] #{COMMENT2}
+	{KEY1}={VALUE} # {COMMENT3}
+
+Empty lines are ignored.
+*/
 package dotini
 
 import (
@@ -9,7 +41,7 @@ import (
 	"strings"
 )
 
-// Parse parses a basic ini file, no sections.
+// Parse parses an ini file.
 func Parse(handle HandlerFunc, r io.Reader) error {
 	buf := bufio.NewReader(r)
 	var lineno int
@@ -51,7 +83,7 @@ func Parse(handle HandlerFunc, r io.Reader) error {
 		// text without equal sign, invalid
 		i := strings.Index(line, "=")
 		if i == -1 {
-			return fmt.Errorf("ini syntax error %v", lineno)
+			return fmt.Errorf("[line %v] %s %w", lineno, rawline, ErrSyntax)
 		}
 		// field line
 		rawkey := line[:i]
@@ -70,7 +102,7 @@ func Parse(handle HandlerFunc, r io.Reader) error {
 			unquoted, err := strconv.Unquote(rawvalue)
 			if err != nil {
 				if unquoted != "" && errors.Is(err, strconv.ErrSyntax) {
-					return fmt.Errorf("unqote %s: %w", unquoted, err)
+					return fmt.Errorf("[line %v] %s %w", lineno, rawline, ErrSyntax)
 				}
 			} else {
 				value = unquoted
@@ -103,3 +135,5 @@ type HandlerFunc func(section, key, value, comment string) error
 func (h HandlerFunc) UseIni(section, key, value, comment string) error {
 	return h(section, key, value, comment)
 }
+
+var ErrSyntax = fmt.Errorf("syntax error")
