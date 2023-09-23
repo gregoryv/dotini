@@ -43,8 +43,9 @@ import (
 	"strings"
 )
 
-// Parse parses an ini file.
-func Parse(handle HandlerFunc, r io.Reader) error {
+// Parse file, fails on first syntax error and returns nil error once
+// io.EOF is reached.
+func Parse(handle Handler, r io.Reader) error {
 	buf := bufio.NewReader(r)
 	var lineno int
 	var section string
@@ -65,7 +66,7 @@ func Parse(handle HandlerFunc, r io.Reader) error {
 		// only comment
 		if line[0] == '#' {
 			comment := findComment(line)
-			_ = handle.UseIni(section, "", "", comment)
+			_ = handle(section, "", "", comment)
 			// ignore if handler fails when handling a comment
 			continue
 		}
@@ -77,7 +78,7 @@ func Parse(handle HandlerFunc, r io.Reader) error {
 			}
 			section = line[1:to]
 			comment := findComment(line)
-			err := handle.UseIni(section, "", "", comment)
+			err := handle(section, "", "", comment)
 			if err != nil {
 				return err
 			}
@@ -113,7 +114,7 @@ func Parse(handle HandlerFunc, r io.Reader) error {
 					value = unquoted
 				}
 			}
-			err = handle.UseIni(section, key, value, comment)
+			err = handle(section, key, value, comment)
 			if err != nil {
 				return err
 			}
@@ -143,10 +144,6 @@ func findComment(line string) string {
 	return comment
 }
 
-type HandlerFunc func(section, key, value, comment string) error
-
-func (h HandlerFunc) UseIni(section, key, value, comment string) error {
-	return h(section, key, value, comment)
-}
+type Handler func(section, key, value, comment string) error
 
 var ErrSyntax = fmt.Errorf("syntax error")
