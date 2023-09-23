@@ -11,7 +11,8 @@ import (
 func Example_parse() {
 	input := `# generic things
 debug = false
-defaultBind = localhost:80 # used set for all servers
+# used set for all servers
+defaultBind = localhost:80
 
 [example]
 text = "escaped \""

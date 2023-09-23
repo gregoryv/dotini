@@ -13,6 +13,8 @@ func Parse(handler Handler, scanner *bufio.Scanner) error {
 	for scanner.Scan() {
 		lineno++
 		buf := scanner.Bytes()
+		buf = bytes.TrimSpace(buf)
+
 		var section, key, value, comment []byte
 		var lbrack, rbrack, equal, hash = -1, -1, -1, -1
 
@@ -44,11 +46,7 @@ func Parse(handler Handler, scanner *bufio.Scanner) error {
 				return fmt.Errorf("syntax error: line %v: %s", lineno, string(buf))
 			}
 
-			if hash >= 0 {
-				value = buf[equal+1 : hash]
-			} else {
-				value = buf[equal+1:]
-			}
+			value = buf[equal+1:]
 			value = bytes.TrimSpace(value)
 			if len(value) > 0 && bytes.ContainsAny(value[:1], "\"'`") {
 				valstr, err := strconv.Unquote(string(value))
@@ -58,7 +56,7 @@ func Parse(handler Handler, scanner *bufio.Scanner) error {
 				value = []byte(valstr)
 			}
 		}
-		if hash >= 0 {
+		if hash == 0 {
 			comment = buf[hash:]
 		}
 
