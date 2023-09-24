@@ -7,7 +7,7 @@ import (
 	"strconv"
 )
 
-func Parse(handler Handler, scanner *bufio.Scanner) error {
+func Map(handler Handler, scanner *bufio.Scanner) error {
 	var lineno int
 	var currentSection []byte
 	for scanner.Scan() {

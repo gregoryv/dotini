@@ -29,7 +29,7 @@ bind=localhost:443
 		}
 		return nil
 	}
-	ingrid.Parse(handler, bufio.NewScanner(strings.NewReader(input)))
+	ingrid.Map(handler, bufio.NewScanner(strings.NewReader(input)))
 	// output:
 	// example.text = escaped "
 	// example.hostname = example.com
