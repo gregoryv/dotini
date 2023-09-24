@@ -1,0 +1,12 @@
+; comment 1
+k1=1
+k2=string
+k3=value
+; commented
+k4=something
+k5=123.5
+k6=quoted"
+k7=other "quote"
+[section]
+[section]hostname=example.com
+[section]text=some test with ; init

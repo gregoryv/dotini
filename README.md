@@ -6,7 +6,7 @@ The format is often used in .ini, .conf or .cfg files. This
 implementation is focused on performance and comes with minor
 limitations.
 
-  - lines starting with # are comments
+  - lines starting with # or ; are comments
   - values may be quoted using " or ` (backtick)
   - sections [ and end with ]
 
@@ -63,4 +63,4 @@ Currently the limitations for this implementation are
      goarch: amd64
      pkg: github.com/gregoryv/ingrid
      cpu: Intel(R) Xeon(R) E-2288G CPU @ 3.70GHz
-     Benchmark_Map-16    	144609124	         7.636 ns/op	       0 B/op	       0 allocs/op
+     Benchmark_Map-16    	151992584	         7.802 ns/op	       0 B/op	       0 allocs/op

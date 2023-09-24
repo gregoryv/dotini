@@ -80,7 +80,7 @@ func appendDoc(buf *bytes.Buffer, filename string) {
 	}
 }
 
-func skipAny(line, prefixes ...string) bool {
+func skipAny(line string, prefixes ...string) bool {
 	for _, p := range prefixes {
 		if strings.HasPrefix(line, p) {
 			return true

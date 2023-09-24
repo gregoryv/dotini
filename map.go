@@ -88,7 +88,7 @@ func indexElements(buf []byte) (lbrack, rbrack, equal, hash int) {
 		setIndex(i, &rbrack, b, ']')
 		setIndex(i, &equal, b, '=')
 
-		if b == '#' {
+		if b == '#' || b == ';' {
 			hash = i
 			break
 		}

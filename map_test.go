@@ -30,7 +30,19 @@ func Test_Map_incorrect(t *testing.T) {
 	assert("missing quote", `key1 = "value`)
 }
 
-func Test_Map(t *testing.T) {
+func Test_Map_cfg(t *testing.T) {
+	example, _ := os.ReadFile("testdata/example.cfg")
+	var full bytes.Buffer
+	mapping := newHandler(t, &full)
+	err := Map(mapping, bufio.NewScanner(bytes.NewReader(example)))
+	if err != nil {
+		t.Log(full.String())
+		t.Log(err)
+	}
+	golden.Assert(t, full.String())
+}
+
+func Test_Map_ini(t *testing.T) {
 	example, _ := os.ReadFile("testdata/example.ini")
 	var full bytes.Buffer
 	mapping := newHandler(t, &full)
