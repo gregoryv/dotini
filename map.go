@@ -9,36 +9,36 @@ import (
 
 func Map(mapping Mapfn, scanner *bufio.Scanner) error {
 	var lineno int
+	// remember last section
 	var section []byte
+
 	for scanner.Scan() {
 		lineno++
 		buf := scanner.Bytes()
 		buf = bytes.TrimSpace(buf)
 
-		var key, value, comment []byte
-		var lbrack, rbrack, equal, hash = indexElements(buf)
+		lbrack, rbrack, equal, hash := indexElements(buf)
 
-		section = grabSection(section, buf, lbrack, rbrack)
-
+		// grab section, key, value and comment
+		section = grabSection(buf, section, lbrack, rbrack)
 		key, value, err := grabKeyValue(buf, equal)
 		if err != nil {
 			return fmt.Errorf("%w: line %v: %s", err, lineno, string(buf))
 		}
-		comment = grabComment(buf, hash)
+		comment := grabComment(buf, hash)
 
-		switch {
-		case !isEmpty(section, key, value, comment):
+		if !isEmpty(section, key, value, comment) {
 			mapping(
 				string(section),
 				string(key),
 				string(value),
 				string(comment),
 			)
-
-		case len(buf) > 0:
-			return fmt.Errorf("syntax error: line %v: %s", lineno, string(buf))
+			continue
 		}
-
+		if len(buf) > 0 {
+			return fmt.Errorf("%w: line %v: %s", ErrSyntax, lineno, string(buf))
+		}
 	}
 	return nil
 }
@@ -72,7 +72,7 @@ func grabKeyValue(buf []byte, equal int) (key, value []byte, err error) {
 
 var ErrSyntax = fmt.Errorf("syntax error")
 
-func grabSection(current, buf []byte, lbrack, rbrack int) []byte {
+func grabSection(buf, current []byte, lbrack, rbrack int) []byte {
 	if isSection(lbrack, rbrack) {
 		section := buf[lbrack+1 : rbrack]
 		section = bytes.TrimSpace(section)
