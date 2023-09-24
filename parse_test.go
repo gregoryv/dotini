@@ -35,8 +35,10 @@ func Test_Parse(t *testing.T) {
 	var full bytes.Buffer
 	handler := newHandler(t, &full)
 	err := Parse(handler, bufio.NewScanner(bytes.NewReader(example)))
-	t.Log(full.String())
-	t.Log(err)
+	if err != nil {
+		t.Log(full.String())
+		t.Log(err)
+	}
 	golden.Assert(t, full.String())
 }
 
