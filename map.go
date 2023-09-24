@@ -60,6 +60,7 @@ func grabKeyValue(buf []byte, equal int) (key, value []byte, err error) {
 		value = buf[equal+1:]
 		value = bytes.TrimSpace(value)
 		if isQuoted(value) {
+			normalizeQuotes(value)
 			valstr, err := strconv.Unquote(string(value))
 			if err != nil {
 				return nil, nil, ErrSyntax
@@ -70,7 +71,16 @@ func grabKeyValue(buf []byte, equal int) (key, value []byte, err error) {
 	return
 }
 
+var singleQuote byte = '\''
 var ErrSyntax = fmt.Errorf("syntax error")
+
+func normalizeQuotes(value []byte) {
+	last := len(value) - 1
+	if value[0] == singleQuote && value[last] == singleQuote {
+		value[0] = '`'
+		value[last] = '`'
+	}
+}
 
 func grabSection(buf, current []byte, lbrack, rbrack int) []byte {
 	if isSection(lbrack, rbrack) {

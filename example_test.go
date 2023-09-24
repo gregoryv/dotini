@@ -17,6 +17,7 @@ defaultBind = localhost:80
 [example]
 text = "escaped \""
 hostname = "example.com"
+more = 'single "quoted" string'
 
 [github]
 hostname=github.com
@@ -24,7 +25,7 @@ bind=localhost:443
 `
 	mapping := func(section, key, value, comment string) error {
 		switch key {
-		case "hostname", "text":
+		case "hostname", "text", "more":
 			fmt.Printf("%s.%s = %s\n", section, key, value)
 		}
 		return nil
@@ -33,5 +34,6 @@ bind=localhost:443
 	// output:
 	// example.text = escaped "
 	// example.hostname = example.com
+	// example.more = single "quoted" string
 	// github.hostname = github.com
 }
