@@ -20,3 +20,5 @@ Currently the limitations for this implementation are
   - no multiline values
 */
 package ingrid
+
+//go:generate go run ./internal -in doc.go -out README.md
