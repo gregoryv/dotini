@@ -10,6 +10,7 @@ limitations.
   - comments start with # or ;
   - values may be quoted using ", ` (backtick), or ' (single tick)
   - sections start with [ and end with ]
+  - spaces before and after key, values are removed
 
 # Limitations
 
