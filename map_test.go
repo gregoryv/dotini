@@ -56,7 +56,7 @@ func Benchmark_Map(b *testing.B) {
 	}
 }
 
-func newHandler(t *testing.T, full *bytes.Buffer) Handler {
+func newHandler(t *testing.T, full *bytes.Buffer) Mapfn {
 	return func(section, key, value, comment string) error {
 		var buf bytes.Buffer
 		if len(section) > 0 {
