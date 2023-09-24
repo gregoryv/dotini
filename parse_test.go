@@ -1,4 +1,4 @@
-package dotini
+package ingrid
 
 import (
 	"bufio"

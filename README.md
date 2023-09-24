@@ -1,1 +1,1 @@
-dot ini file parser
+Ingrid - .ini file parser

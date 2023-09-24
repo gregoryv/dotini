@@ -1,11 +1,11 @@
-package dotini_test
+package ingrid_test
 
 import (
 	"bufio"
 	"fmt"
 	"strings"
 
-	"github.com/gregoryv/dotini"
+	"github.com/gregoryv/ingrid"
 )
 
 func Example_parse() {
@@ -29,7 +29,7 @@ bind=localhost:443
 		}
 		return nil
 	}
-	dotini.Parse(handler, bufio.NewScanner(strings.NewReader(input)))
+	ingrid.Parse(handler, bufio.NewScanner(strings.NewReader(input)))
 	// output:
 	// example.text = escaped "
 	// example.hostname = example.com

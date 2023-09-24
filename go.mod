@@ -1,4 +1,4 @@
-module github.com/gregoryv/dotini
+module github.com/gregoryv/ingrid
 
 go 1.21.1
 
