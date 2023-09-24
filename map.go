@@ -7,7 +7,7 @@ import (
 	"strconv"
 )
 
-func Map(handler Handler, scanner *bufio.Scanner) error {
+func Map(mapping Handler, scanner *bufio.Scanner) error {
 	var lineno int
 	var currentSection []byte
 	for scanner.Scan() {
@@ -62,7 +62,7 @@ func Map(handler Handler, scanner *bufio.Scanner) error {
 
 		switch {
 		case len(section)+len(key)+len(value)+len(comment) > 0:
-			handler(
+			mapping(
 				string(currentSection),
 				string(key),
 				string(value),

@@ -16,8 +16,8 @@ func Test_Map_incorrect(t *testing.T) {
 		t.Helper()
 		t.Run(label, func(t *testing.T) {
 			var full bytes.Buffer
-			handler := newHandler(t, &full)
-			err := Map(handler, bufio.NewScanner(strings.NewReader(input)))
+			mapping := newHandler(t, &full)
+			err := Map(mapping, bufio.NewScanner(strings.NewReader(input)))
 			if err == nil {
 				t.Log(full.String())
 				t.Error("expected error")
@@ -33,8 +33,8 @@ func Test_Map_incorrect(t *testing.T) {
 func Test_Map(t *testing.T) {
 	example, _ := os.ReadFile("testdata/example.ini")
 	var full bytes.Buffer
-	handler := newHandler(t, &full)
-	err := Map(handler, bufio.NewScanner(bytes.NewReader(example)))
+	mapping := newHandler(t, &full)
+	err := Map(mapping, bufio.NewScanner(bytes.NewReader(example)))
 	if err != nil {
 		t.Log(full.String())
 		t.Log(err)
@@ -44,11 +44,11 @@ func Test_Map(t *testing.T) {
 
 func Benchmark_Map(b *testing.B) {
 	example, _ := os.ReadFile("testdata/example.ini")
-	handler := func(section, key, value, comment string) error { return nil }
+	mapping := func(section, key, value, comment string) error { return nil }
 	r := bytes.NewReader(example)
 	scanner := bufio.NewScanner(r)
 	for i := 0; i < b.N; i++ {
-		err := Map(handler, scanner)
+		err := Map(mapping, scanner)
 		if err != nil {
 			b.Fatal(err)
 		}

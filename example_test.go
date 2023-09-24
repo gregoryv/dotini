@@ -22,14 +22,14 @@ hostname = "example.com"
 hostname=github.com
 bind=localhost:443
 `
-	handler := func(section, key, value, comment string) error {
+	mapping := func(section, key, value, comment string) error {
 		switch key {
 		case "hostname", "text":
 			fmt.Printf("%s.%s = %s\n", section, key, value)
 		}
 		return nil
 	}
-	ingrid.Map(handler, bufio.NewScanner(strings.NewReader(input)))
+	ingrid.Map(mapping, bufio.NewScanner(strings.NewReader(input)))
 	// output:
 	// example.text = escaped "
 	// example.hostname = example.com
