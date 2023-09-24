@@ -52,7 +52,7 @@ func appendBenchmark(buf *bytes.Buffer) {
 	scanner := bufio.NewScanner(bytes.NewReader(out))
 	for scanner.Scan() {
 		line := scanner.Text()
-		if skipBench(line) {
+		if skipAny(line, "PASS", "ok ") {
 			continue
 		}
 		fmt.Fprintln(buf, "    ", line)
@@ -68,7 +68,7 @@ func appendDoc(buf *bytes.Buffer, filename string) {
 	scanner := bufio.NewScanner(fh)
 	for scanner.Scan() {
 		line := scanner.Text()
-		if skip(line) {
+		if skipAny(line, "/*", "*/", "//go:generate", "package ingrid") {
 			continue
 		}
 		if strings.HasPrefix(line, "# ") {
@@ -80,24 +80,11 @@ func appendDoc(buf *bytes.Buffer, filename string) {
 	}
 }
 
-func skip(line string) bool {
-	switch {
-	case strings.HasPrefix(line, "/*"):
-	case strings.HasPrefix(line, "*/"):
-	case strings.HasPrefix(line, "//go:generate"):
-	case strings.HasPrefix(line, "package ingrid"):
-	default:
-		return false
+func skipAny(line, prefixes ...string) bool {
+	for _, p := range prefixes {
+		if strings.HasPrefix(line, p) {
+			return true
+		}
 	}
-	return true
-}
-
-func skipBench(line string) bool {
-	switch {
-	case strings.HasPrefix(line, "PASS"):
-	case strings.HasPrefix(line, "ok "):
-	default:
-		return false
-	}
-	return true
+	return false
 }
