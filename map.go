@@ -44,7 +44,7 @@ func Map(mapping Mapfn, scanner *bufio.Scanner) error {
 	return nil
 }
 
-// grabComment returns entire buf semihash is 0, nil otherwise,
+// grabComment returns entire buf if semihash is 0, nil otherwise,
 // ie. comments are only allowed on separate lines.
 func grabComment(buf []byte, semihash int) []byte {
 	if semihash == 0 {
