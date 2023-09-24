@@ -8,7 +8,7 @@ import (
 	"github.com/gregoryv/ingrid"
 )
 
-func Example_parse() {
+func Example() {
 	input := `# generic things
 debug = false
 # used set for all servers
