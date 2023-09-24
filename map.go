@@ -18,7 +18,6 @@ func Map(mapping Mapfn, scanner *bufio.Scanner) error {
 		lineno++
 		buf := scanner.Bytes()
 		buf = bytes.TrimSpace(buf)
-
 		lbrack, rbrack, equal, semihash := indexElements(buf)
 
 		// grab section, key, value and comment
@@ -54,6 +53,8 @@ func grabComment(buf []byte, semihash int) []byte {
 	return nil
 }
 
+// grabKeyValue returns key and value from buf. Quoted values are
+// unquoted. Returns ErrSyntax if incorrectly formated.
 func grabKeyValue(buf []byte, equal int) (key, value []byte, err error) {
 	if equal == -1 {
 		return
@@ -79,6 +80,7 @@ func grabKeyValue(buf []byte, equal int) (key, value []byte, err error) {
 var singleQuote byte = '\''
 var ErrSyntax = fmt.Errorf("syntax error")
 
+// normalizeQuotes replaces single tick quotes with `
 func normalizeQuotes(value []byte) {
 	last := len(value) - 1
 	if value[0] == singleQuote && value[last] == singleQuote {
@@ -87,6 +89,8 @@ func normalizeQuotes(value []byte) {
 	}
 }
 
+// grabSection returns new section if buf contains one, otherwise
+// current is returned.
 func grabSection(buf, current []byte, lbrack, rbrack int) []byte {
 	if isSection(lbrack, rbrack) {
 		section := buf[lbrack+1 : rbrack]
@@ -96,6 +100,7 @@ func grabSection(buf, current []byte, lbrack, rbrack int) []byte {
 	return current
 }
 
+// indexElements indexes first occurence of [, ], = and # or ; in buf
 func indexElements(buf []byte) (lbrack, rbrack, equal, semihash int) {
 	lbrack, rbrack, equal, semihash = -1, -1, -1, -1
 	for i, b := range buf {
