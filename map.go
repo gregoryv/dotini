@@ -11,23 +11,20 @@ import (
 // Returns ErrSyntax if line is badly formatted.
 func Map(mapping Mapfn, scanner *bufio.Scanner) error {
 	var lineno int
-	// last section
-	var section []byte
+	// current section
+	var current []byte
 
 	for scanner.Scan() {
 		lineno++
 		buf := scanner.Bytes()
 		buf = bytes.TrimSpace(buf)
-		lbrack, rbrack, equal, semihash := indexElements(buf)
 
 		// grab section, key, value and comment
-		var err error
-		section = grabSection(&err, buf, section, lbrack, rbrack)
-		key, value := grabKeyValue(&err, buf, equal)
-		comment := grabComment(buf, semihash)
+		section, key, value, comment, err := parse(buf, current)
 		if err != nil {
 			return fmt.Errorf("%v %s %w", lineno, string(buf), err)
 		}
+		current = section
 
 		if !isEmpty(section, key, value, comment) {
 			mapping(
@@ -43,6 +40,18 @@ func Map(mapping Mapfn, scanner *bufio.Scanner) error {
 		}
 	}
 	return nil
+}
+
+// parse finds one or more of the allowed parts. Returns an ErrSyntax
+// if there is an error.
+func parse(buf, current []byte) (
+	section, key, value, comment []byte, err error,
+) {
+	lbrack, rbrack, equal, semihash := indexElements(buf)
+	section = grabSection(&err, buf, current, lbrack, rbrack)
+	key, value = grabKeyValue(&err, buf, equal)
+	comment = grabComment(buf, semihash)
+	return
 }
 
 // indexElements indexes first occurence of [, ], = and # or ; in buf
@@ -61,7 +70,7 @@ func indexElements(buf []byte) (lbrack, rbrack, equal, semihash int) {
 	return
 }
 
-// setIndex updates dst once with i if a == b
+// setIndex updates dst with i if a == b and dst == -1
 func setIndex(i int, dst *int, a, b byte) {
 	if *dst != -1 {
 		return
