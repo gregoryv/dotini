@@ -18,6 +18,10 @@ var outFile = flag.String("out", "README.md", "output file")
 func main() {
 	var buf bytes.Buffer
 
+	fmt.Fprintln(&buf,
+		"<!-- GENERATED, DO NOT EDIT! See internal/updateReadme.go -->",
+	)
+
 	appendDoc(&buf, *inFile)
 	appendExample(&buf, *exFile)
 	appendBenchmark(&buf)
@@ -39,6 +43,7 @@ func appendExample(buf *bytes.Buffer, filename string) {
 		line := scanner.Text()
 		fmt.Fprintln(buf, "   ", line)
 	}
+	fmt.Fprintln(buf)
 }
 
 func appendBenchmark(buf *bytes.Buffer) {
@@ -55,6 +60,8 @@ func appendBenchmark(buf *bytes.Buffer) {
 		if skipAny(line, "PASS", "ok ") {
 			continue
 		}
+		line = strings.ReplaceAll(line, "\t", "")
+		line = strings.ReplaceAll(line, "  ", " ")
 		fmt.Fprintln(buf, "    ", line)
 	}
 }

@@ -1,4 +1,9 @@
+<!-- GENERATED, DO NOT EDIT! See internal/updateReadme.go -->
 Package ingrid parses .ini files.
+
+## Quickstart
+
+	$ go get -u github.com/gregoryv/ingrid
 
 ## Features
 
@@ -60,10 +65,11 @@ Currently the limitations for this implementation are
     	// example.more = single "quoted" string
     	// github.hostname = github.com
     }
+
 ## Benchmark
 
      goos: linux
      goarch: amd64
      pkg: github.com/gregoryv/ingrid
      cpu: Intel(R) Xeon(R) E-2288G CPU @ 3.70GHz
-     Benchmark_Map-16    	152860821	         7.873 ns/op	       0 B/op	       0 allocs/op
+     Benchmark_Map-16  152354482     7.816 ns/op    0 B/op    0 allocs/op

@@ -1,6 +1,10 @@
 /*
 Package ingrid parses .ini files.
 
+# Quickstart
+
+	$ go get -u github.com/gregoryv/ingrid
+
 # Features
 
 The format is often used in .ini, .conf or .cfg files. This
