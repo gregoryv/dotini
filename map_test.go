@@ -30,6 +30,26 @@ func Test_Map_incorrect(t *testing.T) {
 	assert("missing quote", `key1 = "value`)
 }
 
+func Test_Map_allowed(t *testing.T) {
+	assert := func(label, input string) {
+		t.Helper()
+		t.Run(label, func(t *testing.T) {
+			var full bytes.Buffer
+			mapping := newHandler(t, &full)
+			err := Map(mapping, bufio.NewScanner(strings.NewReader(input)))
+			if err != nil {
+				t.Log(full.String())
+				t.Error(err)
+			}
+		})
+	}
+
+	assert("grub1",
+		`GRUB_CMDLINE_LINUX_DEFAULT="quiet splash acpi_enf`+
+			`orce_resources=lax snd-intel-dspcfg.dsp_driver=1"`,
+	)
+}
+
 func Test_Map_cfg(t *testing.T) {
 	example, _ := os.ReadFile("testdata/example.cfg")
 	var full bytes.Buffer

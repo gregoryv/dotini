@@ -115,8 +115,11 @@ func indexElements(buf []byte) (lbrack, rbrack, equal, semihash int) {
 	return
 }
 
-// setIndex updates dst with i if a == b
+// setIndex updates dst once with i if a == b
 func setIndex(i int, dst *int, a, b byte) {
+	if *dst != -1 {
+		return
+	}
 	if a != b {
 		return
 	}
