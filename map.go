@@ -44,13 +44,42 @@ func Map(mapping Mapfn, scanner *bufio.Scanner) error {
 	return nil
 }
 
-// grabComment returns entire buf if semihash is 0, nil otherwise,
-// ie. comments are only allowed on separate lines.
-func grabComment(buf []byte, semihash int) []byte {
-	if semihash == 0 {
-		return buf[semihash:]
+// indexElements indexes first occurence of [, ], = and # or ; in buf
+func indexElements(buf []byte) (lbrack, rbrack, equal, semihash int) {
+	lbrack, rbrack, equal, semihash = -1, -1, -1, -1
+	for i, b := range buf {
+		isCommentChar := b == '#' || b == ';'
+		if isCommentChar {
+			semihash = i
+			break
+		}
+		setIndex(i, &lbrack, b, '[')
+		setIndex(i, &rbrack, b, ']')
+		setIndex(i, &equal, b, '=')
 	}
-	return nil
+	return
+}
+
+// setIndex updates dst once with i if a == b
+func setIndex(i int, dst *int, a, b byte) {
+	if *dst != -1 {
+		return
+	}
+	if a != b {
+		return
+	}
+	*dst = i
+}
+
+// grabSection returns new section if buf contains one, otherwise
+// current is returned.
+func grabSection(buf, current []byte, lbrack, rbrack int) []byte {
+	if isSection(lbrack, rbrack) {
+		section := buf[lbrack+1 : rbrack]
+		section = bytes.TrimSpace(section)
+		return section
+	}
+	return current
 }
 
 // grabKeyValue returns key and value from buf. Quoted values are
@@ -77,6 +106,15 @@ func grabKeyValue(buf []byte, equal int) (key, value []byte, err error) {
 	return
 }
 
+// grabComment returns entire buf if semihash is 0, nil otherwise,
+// ie. comments are only allowed on separate lines.
+func grabComment(buf []byte, semihash int) []byte {
+	if semihash == 0 {
+		return buf[semihash:]
+	}
+	return nil
+}
+
 var singleQuote byte = '\''
 var ErrSyntax = fmt.Errorf("syntax error")
 
@@ -87,43 +125,6 @@ func normalizeQuotes(value []byte) {
 		value[0] = '`'
 		value[last] = '`'
 	}
-}
-
-// grabSection returns new section if buf contains one, otherwise
-// current is returned.
-func grabSection(buf, current []byte, lbrack, rbrack int) []byte {
-	if isSection(lbrack, rbrack) {
-		section := buf[lbrack+1 : rbrack]
-		section = bytes.TrimSpace(section)
-		return section
-	}
-	return current
-}
-
-// indexElements indexes first occurence of [, ], = and # or ; in buf
-func indexElements(buf []byte) (lbrack, rbrack, equal, semihash int) {
-	lbrack, rbrack, equal, semihash = -1, -1, -1, -1
-	for i, b := range buf {
-		if b == '#' || b == ';' {
-			semihash = i
-			break
-		}
-		setIndex(i, &lbrack, b, '[')
-		setIndex(i, &rbrack, b, ']')
-		setIndex(i, &equal, b, '=')
-	}
-	return
-}
-
-// setIndex updates dst once with i if a == b
-func setIndex(i int, dst *int, a, b byte) {
-	if *dst != -1 {
-		return
-	}
-	if a != b {
-		return
-	}
-	*dst = i
 }
 
 // isEmpty returns true if all arguments are empty
