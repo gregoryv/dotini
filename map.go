@@ -21,12 +21,13 @@ func Map(mapping Mapfn, scanner *bufio.Scanner) error {
 		lbrack, rbrack, equal, semihash := indexElements(buf)
 
 		// grab section, key, value and comment
+		var err error
 		section = grabSection(buf, section, lbrack, rbrack)
-		key, value, err := grabKeyValue(buf, equal)
+		key, value := grabKeyValue(&err, buf, equal)
+		comment := grabComment(buf, semihash)
 		if err != nil {
 			return fmt.Errorf("%w: line %v: %s", err, lineno, string(buf))
 		}
-		comment := grabComment(buf, semihash)
 
 		if !isEmpty(section, key, value, comment) {
 			mapping(
@@ -84,22 +85,28 @@ func grabSection(buf, current []byte, lbrack, rbrack int) []byte {
 
 // grabKeyValue returns key and value from buf. Quoted values are
 // unquoted. Returns ErrSyntax if incorrectly formated.
-func grabKeyValue(buf []byte, equal int) (key, value []byte, err error) {
-	if equal == -1 {
+func grabKeyValue(err *error, buf []byte, equal int) (key, value []byte) {
+	if equal == -1 || *err != nil {
 		return
 	}
 	key = bytes.TrimSpace(buf[:equal])
 	if bytes.ContainsAny(key, " ") {
-		return nil, nil, ErrSyntax
+		*err = ErrSyntax
+		return nil, nil
 	}
+	value = grabValue(err, buf, equal)
+	return
+}
 
+func grabValue(err *error, buf []byte, equal int) (value []byte) {
 	value = buf[equal+1:]
 	value = bytes.TrimSpace(value)
 	if isQuoted(value) {
 		normalizeQuotes(value)
-		valstr, err := strconv.Unquote(string(value))
-		if err != nil {
-			return nil, nil, ErrSyntax
+		valstr, e := strconv.Unquote(string(value))
+		if e != nil {
+			*err = ErrSyntax
+			return
 		}
 		value = []byte(valstr)
 	}
