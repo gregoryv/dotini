@@ -22,7 +22,7 @@ func Map(mapping Mapfn, scanner *bufio.Scanner) error {
 
 		// grab section, key, value and comment
 		var err error
-		section = grabSection(buf, section, lbrack, rbrack)
+		section = grabSection(&err, buf, section, lbrack, rbrack)
 		key, value := grabKeyValue(&err, buf, equal)
 		comment := grabComment(buf, semihash)
 		if err != nil {
@@ -74,7 +74,11 @@ func setIndex(i int, dst *int, a, b byte) {
 
 // grabSection returns new section if buf contains one, otherwise
 // current is returned.
-func grabSection(buf, current []byte, lbrack, rbrack int) []byte {
+func grabSection(err *error, buf, current []byte, lbrack, rbrack int) []byte {
+	if lbrack == 0 && rbrack == -1 {
+		*err = ErrSyntax
+		return current
+	}
 	if isSection(lbrack, rbrack) {
 		section := buf[lbrack+1 : rbrack]
 		section = bytes.TrimSpace(section)
