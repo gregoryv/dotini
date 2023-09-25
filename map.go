@@ -26,7 +26,7 @@ func Map(mapping Mapfn, scanner *bufio.Scanner) error {
 		key, value := grabKeyValue(&err, buf, equal)
 		comment := grabComment(buf, semihash)
 		if err != nil {
-			return fmt.Errorf("%w: line %v: %s", err, lineno, string(buf))
+			return fmt.Errorf("%v %s %w", lineno, string(buf), err)
 		}
 
 		if !isEmpty(section, key, value, comment) {
@@ -39,7 +39,7 @@ func Map(mapping Mapfn, scanner *bufio.Scanner) error {
 			continue
 		}
 		if len(buf) > 0 {
-			return fmt.Errorf("%w: line %v: %s", ErrSyntax, lineno, string(buf))
+			return fmt.Errorf("%v %s %w", lineno, string(buf), ErrSyntax)
 		}
 	}
 	return nil

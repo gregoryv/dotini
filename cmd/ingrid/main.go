@@ -29,7 +29,7 @@ func parseFiles(files []string) parseFn {
 
 		fh, err := os.Open(files[0])
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("%s:%w", files[0], err)
 		}
 		defer fh.Close()
 
@@ -37,7 +37,7 @@ func parseFiles(files []string) parseFn {
 			printKeyValue, bufio.NewScanner(fh),
 		)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("%s:%w", files[0], err)
 		}
 
 		return parseFiles(files[1:]), nil
