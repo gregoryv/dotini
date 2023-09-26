@@ -1,0 +1,31 @@
+name: Go
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: '1.21'
+
+    - name: Build
+      run: go build -v ./cmd/ingrid
+
+    - name: Test
+      run: go test -v ./...
+
+    - name: Run cmd/ingrid cfg
+      run: ./ingrid testdata/example.cfg
+
+    - name: Run cmd/ingrid ini
+      run: ./ingrid testdata/example.ini 
