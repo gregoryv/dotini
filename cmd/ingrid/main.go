@@ -33,27 +33,29 @@ func parseFiles(files []string) parseFn {
 		}
 		defer fh.Close()
 
-		err = ingrid.Map(
-			printKeyValue, bufio.NewScanner(fh),
+		ingrid.Map(
+			printKeyValue(files[0]), bufio.NewScanner(fh),
 		)
-		if err != nil {
-			return nil, fmt.Errorf("%s:%w", files[0], err)
-		}
 
 		return parseFiles(files[1:]), nil
 	}
 }
 
-func printKeyValue(section, key, value, comment string) error {
-	if key == "" {
-		return nil
+func printKeyValue(filename string) ingrid.Mapfn {
+	return func(section, key, value, comment string, err error) {
+		if err != nil {
+			fmt.Printf("%s:%v", filename, err)
+			return
+		}
+		if key == "" {
+			return
+		}
+		prefix := ""
+		if section != "" {
+			prefix = section + "."
+		}
+		fmt.Printf("%s%s = %s\n", prefix, key, value)
 	}
-	prefix := ""
-	if section != "" {
-		prefix = section + "."
-	}
-	fmt.Printf("%s%s = %s\n", prefix, key, value)
-	return nil
 }
 
 type parseFn func() (parseFn, error)
