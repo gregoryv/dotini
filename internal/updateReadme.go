@@ -12,7 +12,7 @@ import (
 )
 
 var inFile = flag.String("in", "doc.go", "input file")
-var exFile = flag.String("example", "example_test.go", "example input file")
+var exFile = flag.String("example", "map_test.go", "example input file")
 var outFile = flag.String("out", "README.md", "output file")
 
 func main() {

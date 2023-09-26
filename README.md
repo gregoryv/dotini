@@ -90,4 +90,4 @@ Currently the limitations for this implementation are
      goarch: amd64
      pkg: github.com/gregoryv/ingrid
      cpu: Intel(R) Xeon(R) E-2288G CPU @ 3.70GHz
-     Benchmark_Map-16  153884863     8.000 ns/op    0 B/op    0 allocs/op
+     Benchmark_Map-16  152636766     7.788 ns/op    0 B/op    0 allocs/op
