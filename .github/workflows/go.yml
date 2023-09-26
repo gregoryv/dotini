@@ -18,11 +18,14 @@ jobs:
       with:
         go-version: '1.21'
 
+    - name: Install tooling
+      run: go install github.com/gregoryv/gocolor/cmd/gocolor@latest
+
     - name: Build
       run: go build -v ./cmd/ingrid
 
     - name: Test
-      run: go test -v ./...
+      run: go test -v ./... | gocolor
 
     - name: Run cmd/ingrid cfg
       run: ./ingrid testdata/example.cfg
