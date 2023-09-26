@@ -10,42 +10,35 @@ import (
 
 // Map maps each scanned line to mapping until EOF is reached.
 // Returns ErrSyntax if line is badly formatted.
-func Map(mapping Mapfn, scanner *bufio.Scanner) error {
+func Map(mapping Mapfn, scanner *bufio.Scanner) {
 	var lineno int
 	// current section
 	var current []byte
 
-	var err error
 	for scanner.Scan() {
 		lineno++
 		buf := scanner.Bytes()
 		buf = bytes.TrimSpace(buf)
 
-		// grab section, key, value and comment
-		section, key, value, comment, e := parse(buf, current)
-		if e != nil {
-			err = errors.Join(err,
-				fmt.Errorf("%v %s %w", lineno, string(buf), e),
-			)
-		}
-		current = section
-
-		if !isEmpty(section, key, value, comment) {
-			mapping(
-				string(section),
-				string(key),
-				string(value),
-				string(comment),
-			)
+		if len(buf) == 0 {
 			continue
 		}
-		if len(buf) > 0 {
-			err = errors.Join(err,
-				fmt.Errorf("%v %s %w", lineno, string(buf), ErrSyntax),
-			)
+
+		// grab section, key, value and comment
+		section, key, value, comment, err := parse(buf, current)
+		current = section
+
+		if err != nil {
+			err = fmt.Errorf("%v %s %w", lineno, string(buf), err)
 		}
+		mapping(
+			string(section),
+			string(key),
+			string(value),
+			string(comment),
+			err,
+		)
 	}
-	return err
 }
 
 // parse finds one or more of the allowed parts. Returns an ErrSyntax
@@ -54,15 +47,19 @@ func parse(buf, current []byte) (
 	section, key, value, comment []byte, err error,
 ) {
 	lbrack, rbrack, equal, semihash := indexElements(buf)
-	if lbrack == 0 {
+	switch {
+	case lbrack == 0:
 		section = grabSection(&err, buf, current, lbrack, rbrack)
-	} else {
+
+	case semihash == 0:
+		comment = buf[semihash:]
+
+	default:
+		key, value = grabKeyValue(&err, buf, equal)
+	}
+	if len(section) == 0 {
 		section = current
 	}
-	if semihash == 0 {
-		comment = buf[semihash:]
-	}
-	key, value = grabKeyValue(&err, buf, equal)
 	return
 }
 
@@ -113,13 +110,12 @@ func grabSection(err *error, buf, current []byte, lbrack, rbrack int) []byte {
 // unquoted. Returns ErrSyntax if incorrectly formated.
 func grabKeyValue(err *error, buf []byte, equal int) (key, value []byte) {
 	if equal == -1 {
+		*err = fmt.Errorf("missing equal sign: %w", ErrSyntax)
 		return
 	}
 	key = bytes.TrimSpace(buf[:equal])
 	if bytes.ContainsAny(key, " ") {
-		*err = errors.Join(*err,
-			fmt.Errorf("space not allowed in key: %w", ErrSyntax),
-		)
+		*err = fmt.Errorf("space not allowed in key: %w", ErrSyntax)
 	}
 	value = grabValue(err, buf, equal)
 	return
@@ -151,11 +147,6 @@ func normalizeQuotes(value []byte) {
 	}
 }
 
-// isEmpty returns true if all arguments are empty
-func isEmpty(section, key, value, comment []byte) bool {
-	return len(section)+len(key)+len(value)+len(comment) == 0
-}
-
 // isSection returns true if lbrack somes before rbrack
 func isSection(lbrack, rbrack int) bool {
 	return rbrack > lbrack && lbrack >= 0 && rbrack >= 0
@@ -170,4 +161,4 @@ func isQuoted(value []byte) bool {
 
 // Mapfn is called for each non empty line. section is always the
 // current section. At least one of the arguments is not empty.
-type Mapfn func(section, key, value, comment string) error
+type Mapfn func(section, key, value, comment string, err error)

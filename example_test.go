@@ -23,15 +23,17 @@ more = 'single "quoted" string'
 hostname=github.com
 bind=localhost:443
 `
-	mapping := func(section, key, value, comment string) error {
-		if  key != "" {
+	mapping := func(section, key, value, comment string, err error) {
+		if key != "" {
 			var prefix string
 			if len(section) > 0 {
 				prefix = section + "."
 			}
 			fmt.Printf("%s%s = %s\n", prefix, key, value)
 		}
-		return nil
+		if err != nil {
+			fmt.Println(err)
+		}
 	}
 	ingrid.Map(mapping, bufio.NewScanner(strings.NewReader(input)))
 	// output:

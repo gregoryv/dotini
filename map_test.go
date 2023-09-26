@@ -17,10 +17,9 @@ func Test_Map_incorrect(t *testing.T) {
 		t.Run(label, func(t *testing.T) {
 			var full bytes.Buffer
 			mapping := newHandler(t, &full)
-			err := Map(mapping, bufio.NewScanner(strings.NewReader(input)))
-			if err == nil {
-				t.Log(full.String())
-				t.Error("expected error")
+			Map(mapping, bufio.NewScanner(strings.NewReader(input)))
+			if got := full.String(); !strings.Contains(got, ErrSyntax.Error()) {
+				t.Error(got)
 			}
 		})
 	}
@@ -36,10 +35,9 @@ func Test_Map_allowed(t *testing.T) {
 		t.Run(label, func(t *testing.T) {
 			var full bytes.Buffer
 			mapping := newHandler(t, &full)
-			err := Map(mapping, bufio.NewScanner(strings.NewReader(input)))
-			if err != nil {
-				t.Log(full.String())
-				t.Error(err)
+			Map(mapping, bufio.NewScanner(strings.NewReader(input)))
+			if got := full.String(); strings.Contains(got, ErrSyntax.Error()) {
+				t.Error(got)
 			}
 		})
 	}
@@ -54,11 +52,7 @@ func Test_Map_cfg(t *testing.T) {
 	example, _ := os.ReadFile("testdata/example.cfg")
 	var full bytes.Buffer
 	mapping := newHandler(t, &full)
-	err := Map(mapping, bufio.NewScanner(bytes.NewReader(example)))
-	if err != nil {
-		t.Log(full.String())
-		t.Log(err)
-	}
+	Map(mapping, bufio.NewScanner(bytes.NewReader(example)))
 	golden.Assert(t, full.String())
 }
 
@@ -66,46 +60,39 @@ func Test_Map_ini(t *testing.T) {
 	example, _ := os.ReadFile("testdata/example.ini")
 	var full bytes.Buffer
 	mapping := newHandler(t, &full)
-	err := Map(mapping, bufio.NewScanner(bytes.NewReader(example)))
-	if err != nil {
-		t.Log(full.String())
-		t.Log(err)
-	}
+	Map(mapping, bufio.NewScanner(bytes.NewReader(example)))
 	golden.Assert(t, full.String())
 }
 
 func Benchmark_Map(b *testing.B) {
 	example, _ := os.ReadFile("testdata/example.ini")
-	mapping := func(section, key, value, comment string) error { return nil }
+	mapping := func(section, key, value, comment string, err error) {}
 	r := bytes.NewReader(example)
 	scanner := bufio.NewScanner(r)
 	for i := 0; i < b.N; i++ {
-		err := Map(mapping, scanner)
-		if err != nil {
-			b.Fatal(err)
-		}
+		Map(mapping, scanner)
 		r.Reset(example)
 	}
 }
 
 func newHandler(t *testing.T, full *bytes.Buffer) Mapfn {
-	return func(section, key, value, comment string) error {
+	return func(section, key, value, comment string, err error) {
 		var buf bytes.Buffer
 		if len(section) > 0 {
 			fmt.Fprintf(&buf, "[%s]", section)
 		}
 		if len(key) > 0 {
 			fmt.Fprint(&buf, key, "=")
-
-			if len(value) > 0 {
-				fmt.Fprintf(&buf, value)
-			}
+			fmt.Fprintf(&buf, value)
 		}
 		if len(comment) > 0 {
 			fmt.Fprintf(&buf, comment)
 		}
+		if err != nil {
+			fmt.Fprint(&buf, err)
+		}
 		full.Write(buf.Bytes())
 		full.WriteString("\n")
-		return nil
+
 	}
 }
