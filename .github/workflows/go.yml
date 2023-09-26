@@ -18,14 +18,20 @@ jobs:
       with:
         go-version: '1.21'
 
-    - name: Install tooling
-      run: go install github.com/gregoryv/gocolor/cmd/gocolor@latest
-
     - name: Build
       run: go build -v ./cmd/ingrid
 
+    - name: Install gocolor
+      run: go install github.com/gregoryv/gocolor/cmd/gocolor@latest
+
     - name: Test
-      run: go test -v ./... | gocolor
+      run: go test -v -coverprofile cover.prof -cover ./... | gocolor
+
+    - name: Install uncover
+      run: go install github.com/gregoryv/uncover/cmd/uncover@latest
+
+    - name: Uncover
+      run: uncover cover.prof
 
     - name: Run cmd/ingrid cfg
       run: ./ingrid testdata/example.cfg
