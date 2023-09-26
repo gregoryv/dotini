@@ -50,20 +50,38 @@ Currently the limitations for this implementation are
     [github]
     hostname=github.com
     bind=localhost:443
+    
+    color
+    my name = john
+    [trouble
+    text='...
     `
-    	mapping := func(section, key, value, comment string) error {
-    		switch key {
-    		case "hostname", "text", "more":
-    			fmt.Printf("%s.%s = %s\n", section, key, value)
+    	mapping := func(section, key, value, comment string, err error) {
+    		if err != nil {
+    			fmt.Printf("input line:%v\n", err)
+    			return
     		}
-    		return nil
+    		if key != "" {
+    			var prefix string
+    			if len(section) > 0 {
+    				prefix = section + "."
+    			}
+    			fmt.Printf("%s%s = %s\n", prefix, key, value)
+    		}
     	}
     	ingrid.Map(mapping, bufio.NewScanner(strings.NewReader(input)))
     	// output:
+    	// debug = false
+    	// defaultBind = localhost:80
     	// example.text = escaped "
     	// example.hostname = example.com
     	// example.more = single "quoted" string
     	// github.hostname = github.com
+    	// github.bind = localhost:443
+    	// input line:15 color missing equal sign: syntax error
+    	// input line:16 my name = john space not allowed in key: syntax error
+    	// input line:17 [trouble missing right bracket: syntax error
+    	// input line:18 text='... missing end quote: syntax error
     }
 
 ## Benchmark
@@ -72,4 +90,4 @@ Currently the limitations for this implementation are
      goarch: amd64
      pkg: github.com/gregoryv/ingrid
      cpu: Intel(R) Xeon(R) E-2288G CPU @ 3.70GHz
-     Benchmark_Map-16  152354482     7.816 ns/op    0 B/op    0 allocs/op
+     Benchmark_Map-16  153884863     8.000 ns/op    0 B/op    0 allocs/op
