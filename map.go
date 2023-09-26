@@ -3,7 +3,6 @@ package ingrid
 import (
 	"bufio"
 	"bytes"
-	"errors"
 	"fmt"
 	"strconv"
 )
@@ -94,9 +93,7 @@ func setIndex(i int, dst *int, a, b byte) {
 // current is returned.
 func grabSection(err *error, buf, current []byte, lbrack, rbrack int) []byte {
 	if lbrack == 0 && rbrack == -1 {
-		*err = errors.Join(*err,
-			fmt.Errorf("missing right bracket: %w", ErrSyntax),
-		)
+		*err = fmt.Errorf("missing right bracket: %w", ErrSyntax)
 	}
 	if isSection(lbrack, rbrack) {
 		section := buf[lbrack+1 : rbrack]
@@ -128,7 +125,7 @@ func grabValue(err *error, buf []byte, equal int) (value []byte) {
 		normalizeQuotes(value)
 		valstr, e := strconv.Unquote(string(value))
 		if e != nil {
-			*err = errors.Join(*err, e, ErrSyntax)
+			*err = fmt.Errorf("missing end quote: %w", ErrSyntax)
 		}
 		value = []byte(valstr)
 	}

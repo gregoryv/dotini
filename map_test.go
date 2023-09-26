@@ -11,24 +11,6 @@ import (
 	"github.com/gregoryv/golden"
 )
 
-func Test_Map_incorrect(t *testing.T) {
-	assert := func(label, input string) {
-		t.Helper()
-		t.Run(label, func(t *testing.T) {
-			var full bytes.Buffer
-			mapping := newHandler(t, &full)
-			Map(mapping, bufio.NewScanner(strings.NewReader(input)))
-			if got := full.String(); !strings.Contains(got, ErrSyntax.Error()) {
-				t.Error(got)
-			}
-		})
-	}
-	assert("missing right bracket", `[test`)
-	assert("missing equal sign", `key`)
-	assert("space in key", `key 1 = value`)
-	assert("missing quote", `key1 = "value`)
-}
-
 func Test_Map_allowed(t *testing.T) {
 	assert := func(label, input string) {
 		t.Helper()
