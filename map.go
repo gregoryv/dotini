@@ -3,6 +3,7 @@ package ingrid
 import (
 	"bufio"
 	"bytes"
+	"errors"
 	"fmt"
 	"strconv"
 )
@@ -14,15 +15,18 @@ func Map(mapping Mapfn, scanner *bufio.Scanner) error {
 	// current section
 	var current []byte
 
+	var err error
 	for scanner.Scan() {
 		lineno++
 		buf := scanner.Bytes()
 		buf = bytes.TrimSpace(buf)
 
 		// grab section, key, value and comment
-		section, key, value, comment, err := parse(buf, current)
-		if err != nil {
-			return fmt.Errorf("%v %s %w", lineno, string(buf), err)
+		section, key, value, comment, e := parse(buf, current)
+		if e != nil {
+			err = errors.Join(err,
+				fmt.Errorf("%v %s %w", lineno, string(buf), e),
+			)
 		}
 		current = section
 
@@ -36,10 +40,12 @@ func Map(mapping Mapfn, scanner *bufio.Scanner) error {
 			continue
 		}
 		if len(buf) > 0 {
-			return fmt.Errorf("%v %s %w", lineno, string(buf), ErrSyntax)
+			err = errors.Join(err,
+				fmt.Errorf("%v %s %w", lineno, string(buf), ErrSyntax),
+			)
 		}
 	}
-	return nil
+	return err
 }
 
 // parse finds one or more of the allowed parts. Returns an ErrSyntax
@@ -48,9 +54,15 @@ func parse(buf, current []byte) (
 	section, key, value, comment []byte, err error,
 ) {
 	lbrack, rbrack, equal, semihash := indexElements(buf)
-	section = grabSection(&err, buf, current, lbrack, rbrack)
+	if lbrack == 0 {
+		section = grabSection(&err, buf, current, lbrack, rbrack)
+	} else {
+		section = current
+	}
+	if semihash == 0 {
+		comment = buf[semihash:]
+	}
 	key, value = grabKeyValue(&err, buf, equal)
-	comment = grabComment(buf, semihash)
 	return
 }
 
@@ -85,8 +97,9 @@ func setIndex(i int, dst *int, a, b byte) {
 // current is returned.
 func grabSection(err *error, buf, current []byte, lbrack, rbrack int) []byte {
 	if lbrack == 0 && rbrack == -1 {
-		*err = ErrSyntax
-		return current
+		*err = errors.Join(*err,
+			fmt.Errorf("missing right bracket: %w", ErrSyntax),
+		)
 	}
 	if isSection(lbrack, rbrack) {
 		section := buf[lbrack+1 : rbrack]
@@ -99,13 +112,14 @@ func grabSection(err *error, buf, current []byte, lbrack, rbrack int) []byte {
 // grabKeyValue returns key and value from buf. Quoted values are
 // unquoted. Returns ErrSyntax if incorrectly formated.
 func grabKeyValue(err *error, buf []byte, equal int) (key, value []byte) {
-	if equal == -1 || *err != nil {
+	if equal == -1 {
 		return
 	}
 	key = bytes.TrimSpace(buf[:equal])
 	if bytes.ContainsAny(key, " ") {
-		*err = ErrSyntax
-		return nil, nil
+		*err = errors.Join(*err,
+			fmt.Errorf("space not allowed in key: %w", ErrSyntax),
+		)
 	}
 	value = grabValue(err, buf, equal)
 	return
@@ -118,21 +132,11 @@ func grabValue(err *error, buf []byte, equal int) (value []byte) {
 		normalizeQuotes(value)
 		valstr, e := strconv.Unquote(string(value))
 		if e != nil {
-			*err = ErrSyntax
-			return
+			*err = errors.Join(*err, e, ErrSyntax)
 		}
 		value = []byte(valstr)
 	}
 	return
-}
-
-// grabComment returns entire buf if semihash is 0, nil otherwise,
-// ie. comments are only allowed on separate lines.
-func grabComment(buf []byte, semihash int) []byte {
-	if semihash == 0 {
-		return buf[semihash:]
-	}
-	return nil
 }
 
 var singleQuote byte = '\''

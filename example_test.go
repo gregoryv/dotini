@@ -24,16 +24,22 @@ hostname=github.com
 bind=localhost:443
 `
 	mapping := func(section, key, value, comment string) error {
-		switch key {
-		case "hostname", "text", "more":
-			fmt.Printf("%s.%s = %s\n", section, key, value)
+		if  key != "" {
+			var prefix string
+			if len(section) > 0 {
+				prefix = section + "."
+			}
+			fmt.Printf("%s%s = %s\n", prefix, key, value)
 		}
 		return nil
 	}
 	ingrid.Map(mapping, bufio.NewScanner(strings.NewReader(input)))
 	// output:
+	// debug = false
+	// defaultBind = localhost:80
 	// example.text = escaped "
 	// example.hostname = example.com
 	// example.more = single "quoted" string
 	// github.hostname = github.com
+	// github.bind = localhost:443
 }
