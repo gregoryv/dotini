@@ -23,6 +23,7 @@ more = 'single "quoted" string'
 [github]
 hostname=github.com
 bind=localhost:443
+empty=
 
 # invalid lines
 color
@@ -40,20 +41,21 @@ text='...
 			if len(section) > 0 {
 				prefix = section + "."
 			}
-			fmt.Printf("%s%s = %s\n", prefix, key, value)
+			fmt.Printf("%s%s=%s\n", prefix, key, value)
 		}
 	}
 	ingrid.Map(mapping, bufio.NewScanner(strings.NewReader(input)))
 	// output:
-	// debug = false
-	// bind = localhost:80
-	// example.text = escaped "
-	// example.hostname = example.com
-	// example.more = single "quoted" string
-	// github.hostname = github.com
-	// github.bind = localhost:443
-	// input line:16 color SYNTAX ERROR: missing equal sign
-	// input line:17 my name = john SYNTAX ERROR: space not allowed in key
-	// input line:18 [trouble SYNTAX ERROR: missing right bracket
-	// input line:19 text='... SYNTAX ERROR: missing end quote
+	// debug=false
+	// bind=localhost:80
+	// example.text=escaped "
+	// example.hostname=example.com
+	// example.more=single "quoted" string
+	// github.hostname=github.com
+	// github.bind=localhost:443
+	// github.empty=
+	// input line:17 color SYNTAX ERROR: missing equal sign
+	// input line:18 my name = john SYNTAX ERROR: space not allowed in key
+	// input line:19 [trouble SYNTAX ERROR: missing right bracket
+	// input line:20 text='... SYNTAX ERROR: missing end quote
 }

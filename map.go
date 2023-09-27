@@ -153,6 +153,9 @@ func isSection(lbrack, rbrack int) bool {
 // isQuoted returns true if the first character of value looks like
 // quote char, value cannot be empty
 func isQuoted(value []byte) bool {
+	if len(value) == 0 {
+		return false
+	}
 	const quoteChars = "\"'`"
 	return bytes.ContainsAny(value[:1], quoteChars)
 }
