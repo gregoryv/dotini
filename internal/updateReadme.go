@@ -19,7 +19,8 @@ func main() {
 	var buf bytes.Buffer
 
 	fmt.Fprintln(&buf,
-		"<!-- GENERATED, DO NOT EDIT! See internal/updateReadme.go -->",
+		"<!-- GENERATED, DO NOT EDIT! See internal/updateReadme.go -->\n",
+		`<img src="./internal/banner.png">`,
 	)
 
 	appendDoc(&buf, *inFile)

@@ -1,4 +1,5 @@
 <!-- GENERATED, DO NOT EDIT! See internal/updateReadme.go -->
+ <img src="./internal/banner.png">
 Package ingrid parses .ini files.
 
 ## Quickstart
@@ -92,4 +93,4 @@ Currently the limitations for this implementation are
      goarch: amd64
      pkg: github.com/gregoryv/ingrid
      cpu: Intel(R) Xeon(R) E-2288G CPU @ 3.70GHz
-     Benchmark_Map-16  155136238     7.670 ns/op    0 B/op    0 allocs/op
+     Benchmark_Map-16  156148386     7.671 ns/op    0 B/op    0 allocs/op
