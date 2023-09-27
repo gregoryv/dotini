@@ -32,16 +32,12 @@ my name = john
 text='...
 `
 	mapping := func(section, key, value, comment string, err error) {
-		if errors.Is(err, ingrid.ErrSyntax) {
+		switch {
+		case errors.Is(err, ingrid.ErrSyntax):
 			fmt.Printf("input line:%v\n", err)
-			return
-		}
-		if key != "" {
-			var prefix string
-			if len(section) > 0 {
-				prefix = section + "."
-			}
-			fmt.Printf("%s%s=%s\n", prefix, key, value)
+
+		case key != "":
+			fmt.Printf("%s%s=%s\n", prefix(section), key, value)
 		}
 	}
 	ingrid.Map(mapping, bufio.NewScanner(strings.NewReader(input)))
@@ -58,4 +54,12 @@ text='...
 	// input line:18 my name = john SYNTAX ERROR: space not allowed in key
 	// input line:19 [trouble SYNTAX ERROR: missing right bracket
 	// input line:20 text='... SYNTAX ERROR: missing end quote
+}
+
+// prefix returns section. if not empty.
+func prefix(section string) string {
+	if len(section) == 0 {
+		return ""
+	}
+	return section + "."
 }
