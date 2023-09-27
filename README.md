@@ -52,6 +52,7 @@ Currently the limitations for this implementation are
     [github]
     hostname=github.com
     bind=localhost:443
+    empty=
     
     # invalid lines
     color
@@ -60,31 +61,36 @@ Currently the limitations for this implementation are
     text='...
     `
     	mapping := func(section, key, value, comment string, err error) {
-    		if errors.Is(err, ingrid.ErrSyntax) {
+    		switch {
+    		case errors.Is(err, ingrid.ErrSyntax):
     			fmt.Printf("input line:%v\n", err)
-    			return
-    		}
-    		if key != "" {
-    			var prefix string
-    			if len(section) > 0 {
-    				prefix = section + "."
-    			}
-    			fmt.Printf("%s%s = %s\n", prefix, key, value)
+    
+    		case key != "":
+    			fmt.Printf("%s%s=%s\n", prefix(section), key, value)
     		}
     	}
     	ingrid.Map(mapping, bufio.NewScanner(strings.NewReader(input)))
     	// output:
-    	// debug = false
-    	// bind = localhost:80
-    	// example.text = escaped "
-    	// example.hostname = example.com
-    	// example.more = single "quoted" string
-    	// github.hostname = github.com
-    	// github.bind = localhost:443
-    	// input line:16 color SYNTAX ERROR: missing equal sign
-    	// input line:17 my name = john SYNTAX ERROR: space not allowed in key
-    	// input line:18 [trouble SYNTAX ERROR: missing right bracket
-    	// input line:19 text='... SYNTAX ERROR: missing end quote
+    	// debug=false
+    	// bind=localhost:80
+    	// example.text=escaped "
+    	// example.hostname=example.com
+    	// example.more=single "quoted" string
+    	// github.hostname=github.com
+    	// github.bind=localhost:443
+    	// github.empty=
+    	// input line:17 color SYNTAX ERROR: missing equal sign
+    	// input line:18 my name = john SYNTAX ERROR: space not allowed in key
+    	// input line:19 [trouble SYNTAX ERROR: missing right bracket
+    	// input line:20 text='... SYNTAX ERROR: missing end quote
+    }
+    
+    // prefix returns section. if not empty.
+    func prefix(section string) string {
+    	if len(section) == 0 {
+    		return ""
+    	}
+    	return section + "."
     }
 
 ## Benchmark
@@ -93,4 +99,4 @@ Currently the limitations for this implementation are
      goarch: amd64
      pkg: github.com/gregoryv/ingrid
      cpu: Intel(R) Xeon(R) E-2288G CPU @ 3.70GHz
-     Benchmark_Map-16  156148386     7.671 ns/op    0 B/op    0 allocs/op
+     Benchmark_Map-16  154855074     7.678 ns/op    0 B/op    0 allocs/op
