@@ -30,6 +30,7 @@ Currently the limitations for this implementation are
     
     import (
     	"bufio"
+    	"errors"
     	"fmt"
     	"strings"
     
@@ -39,8 +40,8 @@ Currently the limitations for this implementation are
     func Example() {
     	input := `# generic things
     debug = false
-    # used set for all servers
-    defaultBind = localhost:80
+    # default for servers
+    bind= localhost:80
     
     [example]
     text = "escaped \""
@@ -51,13 +52,14 @@ Currently the limitations for this implementation are
     hostname=github.com
     bind=localhost:443
     
+    # invalid lines
     color
     my name = john
     [trouble
     text='...
     `
     	mapping := func(section, key, value, comment string, err error) {
-    		if err != nil {
+    		if errors.Is(err, ingrid.ErrSyntax) {
     			fmt.Printf("input line:%v\n", err)
     			return
     		}
@@ -72,16 +74,16 @@ Currently the limitations for this implementation are
     	ingrid.Map(mapping, bufio.NewScanner(strings.NewReader(input)))
     	// output:
     	// debug = false
-    	// defaultBind = localhost:80
+    	// bind = localhost:80
     	// example.text = escaped "
     	// example.hostname = example.com
     	// example.more = single "quoted" string
     	// github.hostname = github.com
     	// github.bind = localhost:443
-    	// input line:15 color missing equal sign: syntax error
-    	// input line:16 my name = john space not allowed in key: syntax error
-    	// input line:17 [trouble missing right bracket: syntax error
-    	// input line:18 text='... missing end quote: syntax error
+    	// input line:16 color SYNTAX ERROR: missing equal sign
+    	// input line:17 my name = john SYNTAX ERROR: space not allowed in key
+    	// input line:18 [trouble SYNTAX ERROR: missing right bracket
+    	// input line:19 text='... SYNTAX ERROR: missing end quote
     }
 
 ## Benchmark
@@ -90,4 +92,4 @@ Currently the limitations for this implementation are
      goarch: amd64
      pkg: github.com/gregoryv/ingrid
      cpu: Intel(R) Xeon(R) E-2288G CPU @ 3.70GHz
-     Benchmark_Map-16  152636766     7.788 ns/op    0 B/op    0 allocs/op
+     Benchmark_Map-16  155136238     7.670 ns/op    0 B/op    0 allocs/op
