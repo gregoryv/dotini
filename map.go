@@ -28,7 +28,9 @@ func Map(mapping Mapfn, scanner *bufio.Scanner) {
 		current = section
 
 		if err != nil {
-			err = fmt.Errorf("%v %s %w", lineno, string(buf), err)
+			err = fmt.Errorf(
+				"%v %s %w: %v", lineno, string(buf), ErrSyntax, err,
+			)
 		}
 		mapping(
 			string(section),
@@ -40,8 +42,7 @@ func Map(mapping Mapfn, scanner *bufio.Scanner) {
 	}
 }
 
-// parse finds one or more of the allowed parts. Returns an ErrSyntax
-// if there is an error.
+// parse finds one or more of the allowed parts.
 func parse(buf, current []byte) (
 	section, key, value, comment []byte, err error,
 ) {
@@ -93,7 +94,7 @@ func setIndex(i int, dst *int, a, b byte) {
 // current is returned.
 func grabSection(err *error, buf, current []byte, lbrack, rbrack int) []byte {
 	if lbrack == 0 && rbrack == -1 {
-		*err = fmt.Errorf("missing right bracket: %w", ErrSyntax)
+		*err = fmt.Errorf("missing right bracket")
 	}
 	if isSection(lbrack, rbrack) {
 		section := buf[lbrack+1 : rbrack]
@@ -107,12 +108,12 @@ func grabSection(err *error, buf, current []byte, lbrack, rbrack int) []byte {
 // unquoted. Returns ErrSyntax if incorrectly formated.
 func grabKeyValue(err *error, buf []byte, equal int) (key, value []byte) {
 	if equal == -1 {
-		*err = fmt.Errorf("missing equal sign: %w", ErrSyntax)
+		*err = fmt.Errorf("missing equal sign")
 		return
 	}
 	key = bytes.TrimSpace(buf[:equal])
 	if bytes.ContainsAny(key, " ") {
-		*err = fmt.Errorf("space not allowed in key: %w", ErrSyntax)
+		*err = fmt.Errorf("space not allowed in key")
 	}
 	value = grabValue(err, buf, equal)
 	return
@@ -125,7 +126,7 @@ func grabValue(err *error, buf []byte, equal int) (value []byte) {
 		normalizeQuotes(value)
 		valstr, e := strconv.Unquote(string(value))
 		if e != nil {
-			*err = fmt.Errorf("missing end quote: %w", ErrSyntax)
+			*err = fmt.Errorf("missing end quote")
 		}
 		value = []byte(valstr)
 	}
@@ -133,7 +134,7 @@ func grabValue(err *error, buf []byte, equal int) (value []byte) {
 }
 
 var singleQuote byte = '\''
-var ErrSyntax = fmt.Errorf("syntax error")
+var ErrSyntax = fmt.Errorf("SYNTAX ERROR")
 
 // normalizeQuotes replaces single tick quotes with `
 func normalizeQuotes(value []byte) {

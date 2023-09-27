@@ -2,6 +2,7 @@ package ingrid_test
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
 	"strings"
 
@@ -30,7 +31,7 @@ my name = john
 text='...
 `
 	mapping := func(section, key, value, comment string, err error) {
-		if err != nil {
+		if errors.Is(err, ingrid.ErrSyntax) {
 			fmt.Printf("input line:%v\n", err)
 			return
 		}
@@ -51,8 +52,8 @@ text='...
 	// example.more = single "quoted" string
 	// github.hostname = github.com
 	// github.bind = localhost:443
-	// input line:16 color missing equal sign: syntax error
-	// input line:17 my name = john space not allowed in key: syntax error
-	// input line:18 [trouble missing right bracket: syntax error
-	// input line:19 text='... missing end quote: syntax error
+	// input line:16 color SYNTAX ERROR: missing equal sign
+	// input line:17 my name = john SYNTAX ERROR: space not allowed in key
+	// input line:18 [trouble SYNTAX ERROR: missing right bracket
+	// input line:19 text='... SYNTAX ERROR: missing end quote
 }
